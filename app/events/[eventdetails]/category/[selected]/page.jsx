@@ -13,6 +13,7 @@ const TailwindInfo = () => {
   const params = useParams();
   const router = useRouter(); 
   const { eventdetails } = params;
+  const [newArray, setNewArray] = useState([]);
 
   useEffect(() => {
    
@@ -38,12 +39,9 @@ const TailwindInfo = () => {
             school.eventsParticipated.some(event => event.eventName === selectedEvent.title && event.category === category)
           );
 
-          console.log('filter',filteredSchools, category)
+         
 
-          //       const schoolsWithPoints = filteredSchools.map(school => {
-          //   const totalPoints = school.eventsParticipated.reduce((acc, event) => acc + event.score, 0);
-          //   return { ...school, totalPoints };
-          // });
+          
 
           const schoolsWithPoints = filteredSchools.map(school => {
             const totalPoints = school.eventsParticipated.reduce((acc, event) => {
@@ -55,6 +53,38 @@ const TailwindInfo = () => {
 
           const sortedSchools = schoolsWithPoints.sort((a, b) => b.totalPoints - a.totalPoints);
           setAvailableSchools(sortedSchools);
+          
+
+          ///
+
+          const custom = await fetch('/api/customparticipants', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ eventTitle: selectedEvent.title, category }),
+          })
+
+          const customdata = await custom.json()
+
+          
+
+          if(customdata.participants && customdata.participants.length > 0){
+            const tempArray = customdata.participants.map((participant) => ({
+              participantName: participant.names.join(', '),
+              school: participant.schoolId, 
+              schoolName: sortedSchools.find((school) => school._id === participant.schoolId)?.schoolName || null,
+              score: sortedSchools.find((school) => school._id === participant.schoolId)?.eventsParticipated.find((item) => item.eventName === selectedEvent.title && item.category === category)?.score || null,
+            }));
+    
+            setNewArray(tempArray); // Update state with new array
+          }
+        
+
+          
+
+
+          ///
 
     
           // Create a mapping of schoolId to total score
@@ -86,6 +116,8 @@ const TailwindInfo = () => {
 
     
           const eventParticipants = data2.participants.filter(participant => participant.eventId === selectedEvent.title);
+
+          
     
           // Calculate top three participants based on the scores from schoolScoresMap
           const topParticipants = eventParticipants
@@ -98,6 +130,7 @@ const TailwindInfo = () => {
             .slice(0, 3); // Get top 3 participants
     
           setTopThreeParticipants(topParticipants);
+
         }
       } catch (error) {
         console.error('Error fetching schools or events:', error);
@@ -114,10 +147,7 @@ const TailwindInfo = () => {
 
   return (
     <>
-      {/* <div className="container mx-auto p-6">
-        <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">Winners</h1>
-        <TopPositions positions={topThreeParticipants} />
-      </div> */}
+
       <div className="m-4 flex-col justify-center">
         <h1 className="text-3xl mb-5 font-extrabold leading-9 tracking-tight text-gray-900 dark:text-cyan-400 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14">
           {eventTitle ? `${eventTitle} Details` : 'Event Details'}
@@ -130,6 +160,7 @@ const TailwindInfo = () => {
                 <th className="px-4 py-4 text-center text-3xl font-medium text-white dark:text-white">Rank</th>
                 <th className="px-4 py-4 text-center text-3xl font-medium text-white dark:text-white">School Code</th>
                 <th className="px-4 py-4 text-center text-3xl font-medium text-white dark:text-white">School Name</th>
+                <th className="px-4 py-4 text-center text-3xl font-medium text-white dark:text-white">Student Name</th>
                 <th className="px-4 py-4 text-center text-3xl font-medium text-white dark:text-white">Total Points</th>
                 <th className="px-4 py-4 text-center text-3xl font-medium text-white dark:text-white">Category</th>
               </tr>
@@ -137,11 +168,18 @@ const TailwindInfo = () => {
             <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900 text-center">
               {availableSchools.length > 0 && availableSchools.map((item, index) => {
                 const participatedEvent = item.eventsParticipated.find(event => event.eventName === eventTitle && event.category === category);
+                let candidate = ''
+                newArray.length > 0 ?
+                  candidate = newArray.find((each)=>each.schoolName === item.schoolName)?.participantName || ''
+                :
+                ''
+                
                 return(
                 <tr key={item.schoolCode} >
                   <td className="px-4 py-4 text-2xl text-gray-900 dark:text-gray-100">{index + 1}</td>
                   <td className="px-4 py-4 text-2xl text-gray-900 dark:text-gray-100">{item.schoolCode}</td>
                   <td className="px-4 py-4 text-2xl text-blue-900 font-bold dark:text-cyan-400 ">{item.schoolName}</td>
+                  <td className="px-4 py-4 text-2xl text-blue-900 font-bold dark:text-cyan-400 ">{candidate}</td>
                   <td className="px-4 py-4 text-2xl text-gray-900 dark:text-gray-100">{item.totalPoints}</td>
                   <td onClick={() => router.push(`/events/${eventdetails}/category/${category}/${item.schoolCode}/winners/${category}`)} className="px-4 cursor-pointer hover:underline py-4 text-2xl text-gray-900 dark:text-gray-100">{category ? category:""}</td>
                 </tr>

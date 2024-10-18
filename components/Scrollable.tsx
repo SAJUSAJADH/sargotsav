@@ -67,10 +67,10 @@ const TailwindInfo = () => {
                     {availableSchools.length > 0 ? (
                         availableSchools.map((item, index) => (
                             <tr key={item.schoolCode}>
-                                <td className="px-4 py-4 text-2xl text-gray-900 dark:text-gray-100">{index + 1}</td>
-                                <td className="px-4 py-4 text-2xl text-gray-900 dark:text-gray-100">{item.schoolCode}</td>
-                                <td className="px-4 font-bold py-4 text-2xl text-blue-900 dark:text-cyan-400">{item.schoolName}</td>
-                                <td className="px-4 py-4 text-2xl text-gray-900 dark:text-gray-100">{item.totalPoints}</td>
+                                <td className={` px-4 py-4 text-2xl text-gray-900 dark:text-gray-100`}>{index + 1}</td>
+                                <td className={`px-4 py-4 text-2xl text-gray-900 dark:text-gray-100`}>{item.schoolCode}</td>
+                                <td className={`px-4 font-bold py-4 text-2xl text-blue-900 dark:text-cyan-400`}>{item.schoolName}</td>
+                                <td className={`px-4 py-4 text-2xl text-gray-900 dark:text-gray-1001`}>{item.totalPoints}</td>
                             </tr>
                         ))
                     ) : (
